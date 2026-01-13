@@ -1,0 +1,66 @@
+<div class="max-w-5xl mx-auto space-y-6 animate-fade-in">
+  
+  <div class="flex items-center gap-4 mb-6">
+    <button mat-icon-button routerLink="/student/simulation">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1 class="text-3xl font-bold text-gray-800 m-0">Mon Parcours Académique</h1>
+  </div>
+
+  @if (notes().length === 0) {
+    <div class="p-10 text-center bg-white rounded shadow text-gray-500">
+      <mat-icon class="text-6xl mb-4">folder_off</mat-icon>
+      <p>Aucun relevé de notes disponible pour le moment.</p>
+    </div>
+  }
+
+  <mat-accordion multi>
+    @for (group of notesByYear; track group.year) {
+      <mat-expansion-panel expanded="true" class="mb-4 shadow-sm border border-gray-100">
+        <mat-expansion-panel-header class="bg-gray-50 h-16">
+          <mat-panel-title class="text-lg font-bold text-blue-800">
+            Année : {{ group.year }}
+          </mat-panel-title>
+          <mat-panel-description>
+            {{ group.notes.length }} module(s)
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <div class="pt-4">
+          <table mat-table [dataSource]="group.notes" class="w-full">
+            
+            <ng-container matColumnDef="matiere">
+              <th mat-header-cell *matHeaderCellDef> UE / Matière </th>
+              <td mat-cell *matCellDef="let element" class="font-medium"> {{element.matiere}} </td>
+            </ng-container>
+          
+            <ng-container matColumnDef="session">
+              <th mat-header-cell *matHeaderCellDef> Session </th>
+              <td mat-cell *matCellDef="let element" class="text-gray-500 text-sm"> {{element.session}} </td>
+            </ng-container>
+          
+            <ng-container matColumnDef="note">
+              <th mat-header-cell *matHeaderCellDef class="text-right"> Note </th>
+              <td mat-cell *matCellDef="let element" class="text-right font-bold text-base"> 
+                {{element.note}}/20 
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="decision">
+              <th mat-header-cell *matHeaderCellDef class="text-center"> État </th>
+              <td mat-cell *matCellDef="let element" class="text-center">
+                <span class="px-2 py-1 rounded text-xs font-bold"
+                  [class]="element.note >= 10 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+                  {{ getDecision(element.note) }}
+                </span>
+              </td>
+            </ng-container>
+          
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+        </div>
+      </mat-expansion-panel>
+    }
+  </mat-accordion>
+</div>

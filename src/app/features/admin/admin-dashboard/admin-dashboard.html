@@ -1,0 +1,184 @@
+<div class="max-w-6xl mx-auto space-y-6">
+  
+  <h1 class="text-3xl font-bold text-gray-800">Administration Pédagogique</h1>
+
+  <mat-tab-group animationDuration="0ms" backgroundColor="primary" class="bg-white shadow rounded-lg">
+    
+    <mat-tab label="Structure (Filières)">
+      <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        <div class="space-y-4">
+          <h2 class="text-xl font-semibold text-blue-800 flex items-center gap-2">
+            <mat-icon>list</mat-icon> Liste des Filières
+          </h2>
+
+          @if (filieres().length === 0) {
+            <p class="text-gray-500 italic">Aucune filière configurée.</p>
+          }
+
+          <mat-accordion>
+            @for (fil of filieres(); track fil.id) {
+              <mat-expansion-panel>
+                <mat-expansion-panel-header>
+                  <mat-panel-title class="font-bold">{{ fil.code }}</mat-panel-title>
+                  <mat-panel-description>{{ fil.libelle }}</mat-panel-description>
+                </mat-expansion-panel-header>
+
+                <div class="py-2">
+                  <h4 class="text-sm font-semibold text-gray-500 uppercase mb-2">Spécialités associées :</h4>
+                  <ul class="list-disc list-inside text-sm text-gray-700">
+                    @for (spec of fil.specialites; track spec.id) {
+                      <li><span class="font-medium">{{ spec.code }}</span> - {{ spec.libelle }}</li>
+                    } @empty {
+                      <li class="text-gray-400">Aucune spécialité</li>
+                    }
+                  </ul>
+                </div>
+              </mat-expansion-panel>
+            }
+          </mat-accordion>
+        </div>
+
+        <div class="space-y-8 border-l pl-8 border-gray-100">
+          
+          <mat-card appearance="outlined">
+            <mat-card-header>
+              <mat-card-title class="text-base">Nouvelle Filière</mat-card-title>
+            </mat-card-header>
+            <mat-card-content class="pt-4">
+              <form [formGroup]="filiereForm" (ngSubmit)="submitFiliere()" class="flex flex-col gap-3">
+                <div class="grid grid-cols-3 gap-2">
+                  <mat-form-field appearance="outline" class="col-span-1">
+                    <mat-label>Code</mat-label>
+                    <input matInput formControlName="code" placeholder="INFO">
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="col-span-2">
+                    <mat-label>Libellé</mat-label>
+                    <input matInput formControlName="libelle" placeholder="Informatique">
+                  </mat-form-field>
+                </div>
+                <button mat-raised-button color="primary" type="submit" [disabled]="filiereForm.invalid || isSubmitting()">
+                  Ajouter Filière
+                </button>
+              </form>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card appearance="outlined">
+            <mat-card-header>
+              <mat-card-title class="text-base">Ajouter Spécialité</mat-card-title>
+            </mat-card-header>
+            <mat-card-content class="pt-4">
+              <form [formGroup]="specialiteForm" (ngSubmit)="submitSpecialite()" class="flex flex-col gap-3">
+                
+                <mat-form-field appearance="outline">
+                  <mat-label>Rattaché à la filière</mat-label>
+                  <mat-select formControlName="filiereId">
+                    @for (f of filieres(); track f.id) {
+                      <mat-option [value]="f.id">{{ f.libelle }} ({{f.code}})</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                <div class="grid grid-cols-3 gap-2">
+                  <mat-form-field appearance="outline" class="col-span-1">
+                    <mat-label>Code</mat-label>
+                    <input matInput formControlName="code" placeholder="GL">
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="col-span-2">
+                    <mat-label>Libellé Spécialité</mat-label>
+                    <input matInput formControlName="libelle" placeholder="Génie Logiciel">
+                  </mat-form-field>
+                </div>
+
+                <button mat-stroked-button color="primary" type="submit" [disabled]="specialiteForm.invalid || isSubmitting()">
+                  Lier la spécialité
+                </button>
+              </form>
+            </mat-card-content>
+          </mat-card>
+
+        </div>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Enseignements (UEs)">
+      <div class="p-6">
+        <h2 class="text-xl font-semibold text-blue-800 mb-4">Création d'une Unité d'Enseignement (UE)</h2>
+        
+        <form [formGroup]="ueForm" (ngSubmit)="submitUE()" class="space-y-6">
+          
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <mat-form-field appearance="outline">
+              <mat-label>Code UE</mat-label>
+              <input matInput formControlName="code" placeholder="INF113">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="md:col-span-2">
+              <mat-label>Libellé UE</mat-label>
+              <input matInput formControlName="libelle" placeholder="Algorithmique et Prog.">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Domaine (Prolog)</mat-label>
+              <mat-select formControlName="domaine">
+                <mat-option value="dev">Développement (dev)</mat-option>
+                <mat-option value="reseau">Réseau (reseau)</mat-option>
+                <mat-option value="math">Mathématiques (math)</mat-option>
+                <mat-option value="gestion">Gestion (gestion)</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <mat-form-field appearance="outline">
+              <mat-label>Crédits</mat-label>
+              <input matInput type="number" formControlName="credits">
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Coefficient</mat-label>
+              <input matInput type="number" formControlName="coefficient">
+            </mat-form-field>
+          </div>
+
+          <div class="bg-gray-50 p-4 rounded border border-gray-200">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="font-bold text-gray-700">Éléments Constitutifs (EC)</h3>
+              <button type="button" mat-mini-fab color="primary" (click)="addEcField()" title="Ajouter un EC">
+                <mat-icon>add</mat-icon>
+              </button>
+            </div>
+
+            <div formArrayName="ecs" class="space-y-3">
+              @for (ec of ecsArray.controls; track $index) {
+                <div [formGroupName]="$index" class="flex gap-3 items-center animate-fade-in">
+                  <mat-form-field appearance="fill" class="flex-1">
+                    <mat-label>Libellé de l'EC</mat-label>
+                    <input matInput formControlName="libelle" placeholder="Ex: Théorie des graphes">
+                  </mat-form-field>
+
+                  <mat-form-field appearance="fill" class="w-32">
+                    <mat-label>Coef.</mat-label>
+                    <input matInput type="number" formControlName="coefficient">
+                  </mat-form-field>
+
+                  <button mat-icon-button color="warn" (click)="removeEcField($index)" [disabled]="ecsArray.length === 1">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="flex justify-end">
+            <button mat-flat-button color="primary" class="px-8 py-2" type="submit" [disabled]="ueForm.invalid || isSubmitting()">
+              Enregistrer l'UE Complète
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </mat-tab>
+
+  </mat-tab-group>
+</div>

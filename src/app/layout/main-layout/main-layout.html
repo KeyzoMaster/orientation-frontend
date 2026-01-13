@@ -1,0 +1,58 @@
+<mat-sidenav-container class="h-screen w-full">
+  
+  <mat-sidenav #sidenav mode="side" opened class="w-64 border-r border-gray-200 shadow-sm">
+    <div class="p-6 border-b flex items-center gap-2">
+      <mat-icon class="text-blue-600">school</mat-icon>
+      <span class="text-xl font-bold text-gray-800">UFR SET</span>
+    </div>
+
+    <mat-nav-list class="pt-4">
+      <a mat-list-item routerLink="/dashboard" routerLinkActive="bg-blue-50 text-blue-700" class="hover:bg-gray-50">
+        <mat-icon matListItemIcon>dashboard</mat-icon>
+        <span matListItemTitle>Tableau de bord</span>
+      </a>
+
+      @if (isAdmin()) {
+        <div class="mt-4 px-4 text-xs font-semibold text-gray-400 uppercase">Administration</div>
+        
+        <a mat-list-item routerLink="/admin/filieres" routerLinkActive="bg-blue-50 text-blue-700">
+          <mat-icon matListItemIcon>category</mat-icon>
+          <span matListItemTitle>Filières & UEs</span>
+        </a>
+      }
+
+      @if (!isAdmin()) {
+        <div class="mt-4 px-4 text-xs font-semibold text-gray-400 uppercase">Mon Parcours</div>
+        
+        <a mat-list-item routerLink="/student/simulation" routerLinkActive="bg-blue-50 text-blue-700">
+          <mat-icon matListItemIcon>psychology</mat-icon>
+          <span matListItemTitle>Simulation Expert</span>
+        </a>
+        
+        <a mat-list-item routerLink="/student/notes" routerLinkActive="bg-blue-50 text-blue-700">
+          <mat-icon matListItemIcon>format_list_numbered</mat-icon>
+          <span matListItemTitle>Mes Notes</span>
+        </a>
+      }
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="bg-gray-50 flex flex-col">
+    
+    <mat-toolbar color="white" class="!bg-white border-b border-gray-200 px-6 flex justify-between">
+      <div class="flex items-center text-sm text-gray-500">
+        Bienvenue, <strong class="ml-1 text-gray-800">{{ currentUser()?.email }}</strong>
+      </div>
+      
+      <button mat-button color="warn" (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        Déconnexion
+      </button>
+    </mat-toolbar>
+
+    <main class="flex-1 p-8 overflow-y-auto">
+      <router-outlet></router-outlet>
+    </main>
+
+  </mat-sidenav-content>
+</mat-sidenav-container>
