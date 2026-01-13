@@ -6,14 +6,13 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "orientation-frontend": {
+    "test": {
       "projectType": "application",
       "schematics": {
-        "@schematics/angular:component": {
-          "style": "scss",
+        "@schematics/angular:class": {
           "skipTests": true
         },
-        "@schematics/angular:class": {
+        "@schematics/angular:component": {
           "skipTests": true
         },
         "@schematics/angular:directive": {
@@ -44,7 +43,6 @@
           "options": {
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
-            "inlineStyleLanguage": "scss",
             "assets": [
               {
                 "glob": "**/*",
@@ -52,7 +50,8 @@
               }
             ],
             "styles": [
-              "src/styles.scss"
+              "src/material-theme.scss",
+              "src/styles.css"
             ]
           },
           "configurations": {
@@ -83,10 +82,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "orientation-frontend:build:production"
+              "buildTarget": "test:build:production"
             },
             "development": {
-              "buildTarget": "orientation-frontend:build:development"
+              "buildTarget": "test:build:development"
             }
           },
           "defaultConfiguration": "development"

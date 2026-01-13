@@ -25,7 +25,7 @@
                 </mat-expansion-panel-header>
 
                 <div class="py-2">
-                  <h4 class="text-sm font-semibold text-gray-500 uppercase mb-2">Spécialités associées :</h4>
+                  <h4 class="text-sm font-semibold text-gray-500 uppercase mb-2">Spécialités :</h4>
                   <ul class="list-disc list-inside text-sm text-gray-700">
                     @for (spec of fil.specialites; track spec.id) {
                       <li><span class="font-medium">{{ spec.code }}</span> - {{ spec.libelle }}</li>
@@ -39,144 +39,175 @@
           </mat-accordion>
         </div>
 
-        <div class="space-y-8 border-l pl-8 border-gray-100">
-          
+        <div class="space-y-6 border-l pl-8 border-gray-100">
           <mat-card appearance="outlined">
-            <mat-card-header>
-              <mat-card-title class="text-base">Nouvelle Filière</mat-card-title>
-            </mat-card-header>
+            <mat-card-header><mat-card-title>Nouvelle Filière</mat-card-title></mat-card-header>
             <mat-card-content class="pt-4">
               <form [formGroup]="filiereForm" (ngSubmit)="submitFiliere()" class="flex flex-col gap-3">
                 <div class="grid grid-cols-3 gap-2">
-                  <mat-form-field appearance="outline" class="col-span-1">
-                    <mat-label>Code</mat-label>
-                    <input matInput formControlName="code" placeholder="INFO">
-                  </mat-form-field>
-                  <mat-form-field appearance="outline" class="col-span-2">
-                    <mat-label>Libellé</mat-label>
-                    <input matInput formControlName="libelle" placeholder="Informatique">
-                  </mat-form-field>
+                  <mat-form-field appearance="outline"><mat-label>Code</mat-label><input matInput formControlName="code"></mat-form-field>
+                  <mat-form-field appearance="outline" class="col-span-2"><mat-label>Libellé</mat-label><input matInput formControlName="libelle"></mat-form-field>
                 </div>
-                <button mat-raised-button color="primary" type="submit" [disabled]="filiereForm.invalid || isSubmitting()">
-                  Ajouter Filière
-                </button>
+                <button mat-raised-button color="primary" type="submit" [disabled]="filiereForm.invalid || isSubmitting()">Ajouter</button>
               </form>
             </mat-card-content>
           </mat-card>
 
           <mat-card appearance="outlined">
-            <mat-card-header>
-              <mat-card-title class="text-base">Ajouter Spécialité</mat-card-title>
-            </mat-card-header>
+            <mat-card-header><mat-card-title>Ajouter Spécialité</mat-card-title></mat-card-header>
             <mat-card-content class="pt-4">
               <form [formGroup]="specialiteForm" (ngSubmit)="submitSpecialite()" class="flex flex-col gap-3">
-                
                 <mat-form-field appearance="outline">
-                  <mat-label>Rattaché à la filière</mat-label>
+                  <mat-label>Filière parente</mat-label>
                   <mat-select formControlName="filiereId">
-                    @for (f of filieres(); track f.id) {
-                      <mat-option [value]="f.id">{{ f.libelle }} ({{f.code}})</mat-option>
-                    }
+                    @for (f of filieres(); track f.id) { <mat-option [value]="f.id">{{ f.libelle }}</mat-option> }
                   </mat-select>
                 </mat-form-field>
-
                 <div class="grid grid-cols-3 gap-2">
-                  <mat-form-field appearance="outline" class="col-span-1">
-                    <mat-label>Code</mat-label>
-                    <input matInput formControlName="code" placeholder="GL">
-                  </mat-form-field>
-                  <mat-form-field appearance="outline" class="col-span-2">
-                    <mat-label>Libellé Spécialité</mat-label>
-                    <input matInput formControlName="libelle" placeholder="Génie Logiciel">
-                  </mat-form-field>
+                  <mat-form-field appearance="outline"><mat-label>Code</mat-label><input matInput formControlName="code"></mat-form-field>
+                  <mat-form-field appearance="outline" class="col-span-2"><mat-label>Libellé</mat-label><input matInput formControlName="libelle"></mat-form-field>
                 </div>
-
-                <button mat-stroked-button color="primary" type="submit" [disabled]="specialiteForm.invalid || isSubmitting()">
-                  Lier la spécialité
-                </button>
+                <button mat-stroked-button color="primary" type="submit" [disabled]="specialiteForm.invalid || isSubmitting()">Lier</button>
               </form>
             </mat-card-content>
           </mat-card>
-
         </div>
       </div>
     </mat-tab>
 
     <mat-tab label="Enseignements (UEs)">
       <div class="p-6">
-        <h2 class="text-xl font-semibold text-blue-800 mb-4">Création d'une Unité d'Enseignement (UE)</h2>
+        <h2 class="text-xl font-semibold text-blue-800 mb-4">Configuration des Unités d'Enseignement</h2>
         
         <form [formGroup]="ueForm" (ngSubmit)="submitUE()" class="space-y-6">
           
+          <div class="bg-blue-50 p-4 rounded border border-blue-100">
+            <h3 class="text-sm font-bold text-blue-800 mb-3 uppercase">Contexte de la Maquette</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+               <mat-form-field appearance="outline" class="bg-white">
+                 <mat-label>Semestre cible</mat-label>
+                 <mat-select formControlName="maquetteId">
+                   @for (m of maquettesDisponibles(); track m.id) {
+                     <mat-option [value]="m.id">{{ m.libelle }} ({{ m.semestre }})</mat-option>
+                   }
+                 </mat-select>
+               </mat-form-field>
+            </div>
+          </div>
+
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <mat-form-field appearance="outline">
               <mat-label>Code UE</mat-label>
               <input matInput formControlName="code" placeholder="INF113">
             </mat-form-field>
-
             <mat-form-field appearance="outline" class="md:col-span-2">
-              <mat-label>Libellé UE</mat-label>
-              <input matInput formControlName="libelle" placeholder="Algorithmique et Prog.">
+              <mat-label>Libellé complet</mat-label>
+              <input matInput formControlName="libelle" placeholder="Algorithmique et Programmation">
             </mat-form-field>
-
             <mat-form-field appearance="outline">
-              <mat-label>Domaine (Prolog)</mat-label>
+              <mat-label>Domaine Prolog</mat-label>
               <mat-select formControlName="domaine">
                 <mat-option value="dev">Développement (dev)</mat-option>
                 <mat-option value="reseau">Réseau (reseau)</mat-option>
                 <mat-option value="math">Mathématiques (math)</mat-option>
-                <mat-option value="gestion">Gestion (gestion)</mat-option>
               </mat-select>
             </mat-form-field>
           </div>
 
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <mat-form-field appearance="outline">
-              <mat-label>Crédits</mat-label>
-              <input matInput type="number" formControlName="credits">
-            </mat-form-field>
-            <mat-form-field appearance="outline">
-              <mat-label>Coefficient</mat-label>
-              <input matInput type="number" formControlName="coefficient">
-            </mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Crédits</mat-label><input matInput type="number" formControlName="credits"></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Coeff UE</mat-label><input matInput type="number" formControlName="coefficient"></mat-form-field>
           </div>
 
-          <div class="bg-gray-50 p-4 rounded border border-gray-200">
+          <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
             <div class="flex justify-between items-center mb-4">
-              <h3 class="font-bold text-gray-700">Éléments Constitutifs (EC)</h3>
-              <button type="button" mat-mini-fab color="primary" (click)="addEcField()" title="Ajouter un EC">
-                <mat-icon>add</mat-icon>
-              </button>
+              <h3 class="font-bold text-gray-700 flex items-center gap-2">
+                <mat-icon class="text-gray-400">layers</mat-icon> Éléments Constitutifs (ECs)
+              </h3>
+              <button type="button" mat-mini-fab color="primary" (click)="addEcField()"><mat-icon>add</mat-icon></button>
             </div>
 
             <div formArrayName="ecs" class="space-y-3">
               @for (ec of ecsArray.controls; track $index) {
-                <div [formGroupName]="$index" class="flex gap-3 items-center animate-fade-in">
-                  <mat-form-field appearance="fill" class="flex-1">
-                    <mat-label>Libellé de l'EC</mat-label>
-                    <input matInput formControlName="libelle" placeholder="Ex: Théorie des graphes">
-                  </mat-form-field>
-
-                  <mat-form-field appearance="fill" class="w-32">
-                    <mat-label>Coef.</mat-label>
-                    <input matInput type="number" formControlName="coefficient">
-                  </mat-form-field>
-
-                  <button mat-icon-button color="warn" (click)="removeEcField($index)" [disabled]="ecsArray.length === 1">
-                    <mat-icon>delete</mat-icon>
-                  </button>
+                <div [formGroupName]="$index" class="flex gap-3 items-center bg-white p-2 rounded shadow-sm">
+                  <mat-form-field appearance="fill" class="flex-1"><mat-label>Nom de l'EC</mat-label><input matInput formControlName="libelle"></mat-form-field>
+                  <mat-form-field appearance="fill" class="w-32"><mat-label>Coef.</mat-label><input matInput type="number" formControlName="coefficient"></mat-form-field>
+                  <button mat-icon-button color="warn" (click)="removeEcField($index)" [disabled]="ecsArray.length === 1"><mat-icon>delete</mat-icon></button>
                 </div>
               }
             </div>
           </div>
 
-          <div class="flex justify-end">
-            <button mat-flat-button color="primary" class="px-8 py-2" type="submit" [disabled]="ueForm.invalid || isSubmitting()">
-              Enregistrer l'UE Complète
+          <div class="flex justify-end pt-4">
+            <button mat-flat-button color="primary" class="px-10 py-6 text-lg" type="submit" [disabled]="ueForm.invalid || isSubmitting()">
+              @if (isSubmitting()) { 
+                <span class="flex items-center gap-2"><mat-icon class="animate-spin">sync</mat-icon> En cours...</span>
+              } @else { 
+                <span>Enregistrer l'UE</span> 
+              }
             </button>
           </div>
-
         </form>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Système Expert (Data)">
+      <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        <mat-card class="text-center shadow-none border border-gray-200 h-full flex flex-col justify-between">
+          <mat-card-header class="justify-center pt-6">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-2">
+              <mat-icon class="text-3xl text-green-600">groups</mat-icon>
+            </div>
+          </mat-card-header>
+          <mat-card-content>
+            <h2 class="text-xl font-bold text-gray-800 mb-2">Base de Connaissances</h2>
+            <p class="text-gray-500 text-sm mb-6">
+              Générer 50 profils d'anciens étudiants avec leurs historiques pour calibrer le moteur Prolog.
+            </p>
+          </mat-card-content>
+          <mat-card-actions align="end" class="pb-6 px-6 justify-center">
+             <button mat-raised-button color="accent" class="w-full py-6" (click)="lancerSeeder()" [disabled]="isSubmitting()">
+              @if (isSubmitting()) { 
+                <span class="flex items-center justify-center"><mat-icon class="animate-spin mr-2">sync</mat-icon> Génération...</span> 
+              } @else { 
+                <span class="flex items-center justify-center"><mat-icon class="mr-2">play_circle</mat-icon> Générer 50 Anciens</span> 
+              }
+            </button>
+          </mat-card-actions>
+        </mat-card>
+
+        <mat-card class="text-center shadow-none border border-gray-200 h-full flex flex-col justify-between">
+          <mat-card-header class="justify-center pt-6">
+            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-2">
+              <mat-icon class="text-3xl text-blue-600">person_add</mat-icon>
+            </div>
+          </mat-card-header>
+          <mat-card-content>
+            <h2 class="text-xl font-bold text-gray-800 mb-2">Simulation Étudiant</h2>
+            <p class="text-gray-500 text-sm mb-4">
+              Générer un parcours L1/L2 complet pour un compte étudiant existant afin de tester l'IA.
+            </p>
+            
+            <mat-form-field appearance="outline" class="w-full text-left">
+              <mat-label>Email de l'étudiant</mat-label>
+              <input matInput [formControl]="seedEmailControl" placeholder="etudiant@ufrset.sn">
+              <mat-icon matSuffix>email</mat-icon>
+              <mat-error>Email invalide</mat-error>
+            </mat-form-field>
+
+          </mat-card-content>
+          <mat-card-actions align="end" class="pb-6 px-6 justify-center">
+             <button mat-stroked-button color="primary" class="w-full py-6" (click)="lancerSeederEtudiant()" [disabled]="seedEmailControl.invalid || isSubmitting()">
+              @if (isSubmitting()) { 
+                <span class="flex items-center justify-center"><mat-icon class="animate-spin mr-2">sync</mat-icon> Traitement...</span> 
+              } @else { 
+                <span class="flex items-center justify-center"><mat-icon class="mr-2">science</mat-icon> Simuler Parcours</span> 
+              }
+            </button>
+          </mat-card-actions>
+        </mat-card>
+
       </div>
     </mat-tab>
 

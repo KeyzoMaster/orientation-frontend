@@ -1,0 +1,66 @@
+<div class="max-w-2xl mx-auto">
+  <h1 class="text-2xl font-bold text-gray-800 mb-6">Saisie des Notes</h1>
+
+  <mat-card appearance="outlined">
+    <mat-card-content class="p-6">
+      <form [formGroup]="gradeForm" (ngSubmit)="submitGrade()" class="flex flex-col gap-4">
+        
+        <div class="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-2">
+          <p class="text-sm text-blue-800 flex items-center gap-2">
+            <mat-icon class="text-base">info</mat-icon>
+            <span>Saisie technique par ID d'inscription (Mode Rapide).</span>
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <mat-form-field appearance="outline" class="md:col-span-2">
+            <mat-label>ID Inscription Étudiant</mat-label>
+            <input matInput type="number" formControlName="inscriptionId" placeholder="Ex: 123">
+            <mat-icon matSuffix>badge</mat-icon>
+            <mat-hint>L'ID unique de l'inscription annuelle de l'étudiant</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Code UE</mat-label>
+            <input matInput formControlName="codeUE" placeholder="Ex: INF113">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Nom EC</mat-label>
+            <input matInput formControlName="nomEC" placeholder="Ex: Algorithmique">
+          </mat-form-field>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <mat-form-field appearance="outline">
+            <mat-label>Session</mat-label>
+            <mat-select formControlName="session">
+              <mat-option value="NORMALE">Normale</mat-option>
+              <mat-option value="RATTRAPAGE">Rattrapage</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Note / 20</mat-label>
+            <input matInput type="number" min="0" max="20" step="0.5" formControlName="note">
+            <mat-icon matSuffix>grade</mat-icon>
+            <mat-error>La note doit être comprise entre 0 et 20</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="flex justify-end mt-4">
+          <button mat-flat-button color="primary" class="px-8 py-2" type="submit" [disabled]="gradeForm.invalid || isSubmitting()">
+            @if (isSubmitting()) {
+              <span class="flex items-center gap-2">
+                <mat-icon class="animate-spin text-base">sync</mat-icon> Enregistrement...
+              </span>
+            } @else {
+              Enregistrer la Note
+            }
+          </button>
+        </div>
+
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

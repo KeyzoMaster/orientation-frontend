@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject, signal } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
 import { FormBuilder, FormArray, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatCardModule } from '@angular/material/card';
@@ -11,7 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { AdminService } from '../admin.service';
-import { Filiere } from '../admin.models';
+import { Filiere, Specialite, MaquetteSemestre } from '../admin.models';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -29,49 +29,66 @@ export class AdminDashboardComponent implements OnInit {
   private readonly adminService = inject(AdminService);
   private readonly snackBar = inject(MatSnackBar);
 
-  // Signals
   readonly filieres = this.adminService.filieres;
   readonly isSubmitting = signal(false);
 
-  // --- FORMULAIRE 1 : Filière ---
+  // --- Sélecteurs pour création UE ---
+  readonly selectedFiliereId = signal<number | null>(null);
+  readonly selectedSpecId = signal<number | null>(null);
+  
+  // Calcul des listes dynamiques pour les dropdowns
+  readonly specialitesDisponibles = computed(() => {
+    const fil = this.filieres().find(f => f.id === this.selectedFiliereId());
+    return fil?.specialites || [];
+  });
+
+  // Note: Dans une vraie app, on chargerait les maquettes via API. 
+  // Ici on mock les maquettes standards L1-M2 si elles ne sont pas dans le modèle Specialite
+  readonly maquettesDisponibles = signal<MaquetteSemestre[]>([
+    { id: 1, libelle: 'L1 S1', semestre: 'L_S1' },
+    { id: 2, libelle: 'L1 S2', semestre: 'L_S2' },
+    { id: 3, libelle: 'L2 S3', semestre: 'L_S3' },
+    { id: 4, libelle: 'L2 S4', semestre: 'L_S4' },
+    { id: 5, libelle: 'L3 S5 GL', semestre: 'L_S5' },
+    { id: 6, libelle: 'L3 S6 GL', semestre: 'L_S6' }
+  ]);
+
+  // --- FORMS ---
   readonly filiereForm = this.fb.nonNullable.group({
     code: ['', Validators.required],
     libelle: ['', Validators.required]
   });
 
-  // --- FORMULAIRE 2 : Spécialité ---
   readonly specialiteForm = this.fb.nonNullable.group({
-    filiereId: [0, Validators.required], // Sera un select
+    filiereId: [0, Validators.required],
     code: ['', Validators.required],
     libelle: ['', Validators.required]
   });
 
-  // --- FORMULAIRE 3 : UE & ECs (Complexe) ---
   readonly ueForm = this.fb.group({
+    maquetteId: [0, Validators.required], // ID du semestre (L_S1, etc.)
     code: ['', Validators.required],
     libelle: ['', Validators.required],
     credits: [6, [Validators.required, Validators.min(1)]],
     coefficient: [3, [Validators.required, Validators.min(1)]],
     domaine: ['dev', Validators.required],
-    ecs: this.fb.array([]) // FormArray pour les ECs dynamiques
+    ecs: this.fb.array([])
   });
+
+  readonly seedEmailControl = this.fb.control('', [Validators.required, Validators.email]);
 
   ngOnInit() {
     this.adminService.loadFilieres();
-    this.addEcField(); // Ajouter un EC par défaut
+    this.addEcField();
   }
 
-  // --- ACTIONS FILIERE ---
+  // --- ACTIONS ---
+
   submitFiliere() {
     if (this.filiereForm.invalid) return;
     this.isSubmitting.set(true);
-
     this.adminService.createFiliere(this.filiereForm.getRawValue()).subscribe({
-      next: () => {
-        this.snackBar.open('Filière créée', 'OK', { duration: 2000 });
-        this.filiereForm.reset();
-        this.isSubmitting.set(false);
-      },
+      next: () => this.handleSuccess('Filière créée', this.filiereForm),
       error: () => this.isSubmitting.set(false)
     });
   }
@@ -80,59 +97,89 @@ export class AdminDashboardComponent implements OnInit {
     if (this.specialiteForm.invalid) return;
     this.isSubmitting.set(true);
     const { filiereId, code, libelle } = this.specialiteForm.getRawValue();
-
-    // Mapping pour l'API qui attend un objet Filiere partiel
-    const payload = { 
-      code, 
-      libelle, 
-      filiere: { id: filiereId } as Filiere 
-    };
-
-    this.adminService.createSpecialite(payload).subscribe({
-      next: () => {
-        this.snackBar.open('Spécialité ajoutée', 'OK', { duration: 2000 });
-        this.specialiteForm.reset(); // Attention à ne pas reset le filiereId si on veut enchaîner
-        this.isSubmitting.set(false);
-      },
+    
+    // On passe l'objet partiel attendu par le service
+    this.adminService.createSpecialite(filiereId, { code, libelle }).subscribe({
+      next: () => this.handleSuccess('Spécialité ajoutée', this.specialiteForm),
       error: () => this.isSubmitting.set(false)
     });
-  }
-
-  // --- LOGIQUE UE / ECs ---
-  
-  get ecsArray() {
-    return this.ueForm.get('ecs') as FormArray;
-  }
-
-  addEcField() {
-    const ecGroup = this.fb.group({
-      libelle: ['', Validators.required],
-      coefficient: [1, [Validators.required, Validators.min(0.5)]]
-    });
-    this.ecsArray.push(ecGroup);
-  }
-
-  removeEcField(index: number) {
-    this.ecsArray.removeAt(index);
   }
 
   submitUE() {
     if (this.ueForm.invalid) return;
     this.isSubmitting.set(true);
 
-    // TypeScript strict checking workaround for FormArray value
-    const rawValue = this.ueForm.value as any; 
+    const formValue = this.ueForm.value;
+    const maquetteId = formValue.maquetteId!;
+    
+    // Nettoyage de l'objet UE pour l'API
+    const uePayload: any = {
+      code: formValue.code,
+      libelle: formValue.libelle,
+      credits: formValue.credits,
+      coefficient: formValue.coefficient,
+      domaine: formValue.domaine,
+      ecs: formValue.ecs
+    };
 
-    this.adminService.createUE(rawValue).subscribe({
+    this.adminService.addUE(maquetteId, uePayload).subscribe({
       next: () => {
-        this.snackBar.open('UE et ECs créés avec succès', 'OK', { duration: 3000 });
-        this.ueForm.reset({ credits: 6, coefficient: 3, domaine: 'dev' });
-        this.ecsArray.clear();
-        this.addEcField();
+        this.snackBar.open('UE ajoutée au semestre', 'OK', { duration: 3000 });
+        this.isSubmitting.set(false);
+        // Reset partiel
+        this.ueForm.patchValue({ code: '', libelle: '' });
+      },
+      error: () => this.isSubmitting.set(false)
+    });
+  }
+
+  // --- HELPERS FORM ARRAY ---
+  get ecsArray() { return this.ueForm.get('ecs') as FormArray; }
+  
+  addEcField() {
+    this.ecsArray.push(this.fb.group({
+      libelle: ['', Validators.required],
+      coefficient: [1, Validators.required]
+    }));
+  }
+
+  removeEcField(index: number) { this.ecsArray.removeAt(index); }
+
+  private handleSuccess(msg: string, form: any) {
+    this.snackBar.open(msg, 'OK', { duration: 2000 });
+    form.reset();
+    this.isSubmitting.set(false);
+  }
+
+  // Méthode pour le Seeder
+  lancerSeeder() {
+    this.isSubmitting.set(true);
+    this.adminService.seedAnciens(50).subscribe({
+      next: (res) => {
+        this.snackBar.open(res, 'Fermer', { duration: 5000 });
         this.isSubmitting.set(false);
       },
-      error: () => {
-        this.snackBar.open('Erreur création UE', 'Fermer');
+      error: (err) => {
+        this.snackBar.open('Erreur Seeder: ' + err.message, 'Fermer');
+        this.isSubmitting.set(false);
+      }
+    });
+  }
+
+  lancerSeederEtudiant() {
+    if (this.seedEmailControl.invalid) return;
+    
+    this.isSubmitting.set(true);
+    const email = this.seedEmailControl.value!;
+
+    this.adminService.seedParcoursEtudiant(email).subscribe({
+      next: (res) => {
+        this.snackBar.open(res, 'OK', { duration: 5000 });
+        this.isSubmitting.set(false);
+        this.seedEmailControl.reset();
+      },
+      error: (err) => {
+        this.snackBar.open('Erreur : ' + err.message, 'Fermer');
         this.isSubmitting.set(false);
       }
     });

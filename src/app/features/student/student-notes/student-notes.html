@@ -1,65 +1,88 @@
-<div class="max-w-5xl mx-auto space-y-6 animate-fade-in">
+<div class="max-w-5xl mx-auto space-y-6 animate-fade-in mb-12">
   
   <div class="flex items-center gap-4 mb-6">
     <button mat-icon-button routerLink="/student/simulation">
       <mat-icon>arrow_back</mat-icon>
     </button>
-    <h1 class="text-3xl font-bold text-gray-800 m-0">Mon Parcours Académique</h1>
+    <div>
+      <h1 class="text-3xl font-bold text-gray-800 m-0">Mon Parcours Académique</h1>
+      <p class="text-gray-500 text-sm">Historique des résultats par année</p>
+    </div>
   </div>
 
-  @if (notes().length === 0) {
-    <div class="p-10 text-center bg-white rounded shadow text-gray-500">
-      <mat-icon class="text-6xl mb-4">folder_off</mat-icon>
-      <p>Aucun relevé de notes disponible pour le moment.</p>
+  @if (!parcours()) {
+    <div class="flex justify-center p-12">
+      <mat-icon class="animate-spin text-blue-600 text-4xl">sync</mat-icon>
+    </div>
+  } @else if (parcours()?.annees?.length === 0) {
+    <div class="p-10 text-center bg-white rounded shadow text-gray-500 border border-gray-200">
+      <mat-icon class="text-6xl mb-4 text-gray-300">school</mat-icon>
+      <p>Aucune inscription académique trouvée.</p>
     </div>
   }
 
   <mat-accordion multi>
-    @for (group of notesByYear; track group.year) {
-      <mat-expansion-panel expanded="true" class="mb-4 shadow-sm border border-gray-100">
-        <mat-expansion-panel-header class="bg-gray-50 h-16">
-          <mat-panel-title class="text-lg font-bold text-blue-800">
-            Année : {{ group.year }}
-          </mat-panel-title>
-          <mat-panel-description>
-            {{ group.notes.length }} module(s)
-          </mat-panel-description>
+    @for (annee of parcours()?.annees; track annee.annee) {
+      <mat-expansion-panel expanded="true" class="mb-4 shadow-sm border border-gray-200 overflow-hidden">
+        <mat-expansion-panel-header class="bg-gray-50 h-16 border-b border-gray-100">
+          <div class="flex items-center justify-between w-full mr-4">
+            <div class="flex flex-col">
+              <span class="text-lg font-bold text-blue-900">
+                {{ annee.niveau }} <span class="text-gray-500 font-normal text-sm">({{ annee.annee }})</span>
+              </span>
+              <span class="text-xs text-gray-500 uppercase tracking-wide">
+                Moyenne : <span class="font-bold text-gray-800">{{ annee.moyenneAnnuelle.toFixed(2) }}/20</span>
+              </span>
+            </div>
+            
+            <div class="px-3 py-1 rounded text-xs font-bold uppercase tracking-wider"
+              [class]="annee.moyenneAnnuelle >= 10 ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'">
+              {{ getDecisionLabel(annee.decision) }}
+            </div>
+          </div>
         </mat-expansion-panel-header>
 
-        <div class="pt-4">
-          <table mat-table [dataSource]="group.notes" class="w-full">
-            
-            <ng-container matColumnDef="matiere">
-              <th mat-header-cell *matHeaderCellDef> UE / Matière </th>
-              <td mat-cell *matCellDef="let element" class="font-medium"> {{element.matiere}} </td>
-            </ng-container>
-          
-            <ng-container matColumnDef="session">
-              <th mat-header-cell *matHeaderCellDef> Session </th>
-              <td mat-cell *matCellDef="let element" class="text-gray-500 text-sm"> {{element.session}} </td>
-            </ng-container>
-          
-            <ng-container matColumnDef="note">
-              <th mat-header-cell *matHeaderCellDef class="text-right"> Note </th>
-              <td mat-cell *matCellDef="let element" class="text-right font-bold text-base"> 
-                {{element.note}}/20 
-              </td>
-            </ng-container>
+        <div class="p-4 grid grid-cols-1 gap-4">
+          @for (ue of annee.ues; track ue.codeUE) {
+            <div class="border rounded-lg p-4 hover:shadow-md transition-shadow bg-white">
+              
+              <div class="flex justify-between items-start mb-3">
+                <div>
+                  <h3 class="font-bold text-gray-800 text-base">{{ ue.libelle }}</h3>
+                  <div class="text-xs text-gray-500 flex gap-2 mt-1">
+                    <span class="bg-gray-100 px-2 rounded">{{ ue.codeUE }}</span>
+                    <span>Crédits: {{ ue.credits }}</span>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <div class="text-lg font-bold" [class.text-red-600]="ue.moyenne < 10" [class.text-green-700]="ue.moyenne >= 10">
+                    {{ ue.moyenne.toFixed(2) }}
+                  </div>
+                  <span class="text-[10px] px-2 py-0.5 rounded border uppercase" [class]="getUEStatusColor(ue.statut)">
+                    {{ ue.statut }}
+                  </span>
+                </div>
+              </div>
 
-            <ng-container matColumnDef="decision">
-              <th mat-header-cell *matHeaderCellDef class="text-center"> État </th>
-              <td mat-cell *matCellDef="let element" class="text-center">
-                <span class="px-2 py-1 rounded text-xs font-bold"
-                  [class]="element.note >= 10 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
-                  {{ getDecision(element.note) }}
-                </span>
-              </td>
-            </ng-container>
-          
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-          </table>
+              @if (ue.notes.length > 0) {
+                <div class="bg-gray-50 rounded p-3 text-sm space-y-2">
+                  @for (note of ue.notes; track note.nomEC) {
+                    <div class="flex justify-between items-center border-b border-gray-200 last:border-0 pb-1 last:pb-0">
+                      <span class="text-gray-700 truncate pr-2">{{ note.nomEC }}</span>
+                      <div class="flex items-center gap-2 shrink-0">
+                        <span class="text-xs text-gray-400 lowercase">({{ note.session }})</span>
+                        <span class="font-medium w-10 text-right">{{ note.valeur }}/20</span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <p class="text-xs text-gray-400 italic mt-2">Aucune note saisie pour cette UE.</p>
+              }
+            </div>
+          }
         </div>
+
       </mat-expansion-panel>
     }
   </mat-accordion>

@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject, signal } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -6,7 +6,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
-import { StudentService, Note } from '../student.service';
+import { StudentService } from '../student.service';
 
 @Component({
   selector: 'app-student-notes',
@@ -21,31 +21,24 @@ import { StudentService, Note } from '../student.service';
 export class StudentNotes implements OnInit {
   private readonly studentService = inject(StudentService);
   
-  // On récupère les notes depuis le service
-  readonly notes = this.studentService.notes;
-
-  // Colonnes pour les tableaux
-  readonly displayedColumns = ['matiere', 'session', 'note', 'decision'];
+  readonly parcours = this.studentService.parcours;
 
   ngOnInit() {
-    this.studentService.loadNotes();
+    // On recharge pour être sûr d'avoir les données à jour
+    this.studentService.loadParcours();
   }
 
-  // Helper pour regrouper les notes par année (L1, L2...)
-  // Dans un vrai cas, cela se ferait côté backend ou via un computed signal
-  get notesByYear() {
-    const allNotes = this.notes();
-    const groups: { [key: string]: Note[] } = {};
-    
-    allNotes.forEach(n => {
-      if (!groups[n.annee]) groups[n.annee] = [];
-      groups[n.annee].push(n);
-    });
-
-    return Object.entries(groups).map(([year, notes]) => ({ year, notes }));
+  // Statut UE (Validé/Dette)
+  getUEStatusColor(statut: string): string {
+    switch(statut) {
+      case 'VALIDE': return 'bg-green-100 text-green-800 border-green-200';
+      case 'COMPENSE': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'ACQUIS_ANTERIEUR': return 'bg-gray-100 text-gray-800 border-gray-200';
+      default: return 'bg-red-50 text-red-600 border-red-100'; // EN_COURS, AJOURNE
+    }
   }
 
-  getDecision(note: number): string {
-    return note >= 10 ? 'Validé' : 'Non Validé';
+  getDecisionLabel(decision: string): string {
+    return decision?.replace('_', ' ') || 'EN COURS';
   }
 }
