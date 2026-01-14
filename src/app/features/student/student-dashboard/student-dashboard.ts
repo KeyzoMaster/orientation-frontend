@@ -4,6 +4,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { RouterLink } from '@angular/router';
@@ -16,7 +17,8 @@ import { StudentService } from '../student.service';
   imports: [
     CommonModule, RouterLink,
     MatCardModule, MatButtonModule, MatIconModule, 
-    MatProgressBarModule, MatTableModule, MatChipsModule
+    MatProgressBarModule, MatTableModule, MatChipsModule,
+    MatTooltipModule
   ],
   templateUrl: './student-dashboard.html',
   changeDetection: ChangeDetectionStrategy.OnPush

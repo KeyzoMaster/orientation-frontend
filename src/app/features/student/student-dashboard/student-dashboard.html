@@ -19,6 +19,14 @@
       
       @if (simulation(); as sim) {
         
+        <div class="bg-indigo-50 border border-indigo-100 rounded-lg p-4 flex items-start gap-3 shadow-sm">
+          <mat-icon class="text-indigo-600 mt-0.5">info</mat-icon>
+          <div>
+            <h4 class="font-bold text-indigo-900 text-sm uppercase mb-1">Méthodologie Appliquée</h4>
+            <p class="text-indigo-800 text-sm">{{ sim.conseilTrajectoire }}</p>
+          </div>
+        </div>
+
         <mat-card class="shadow-md border-l-4" [class.border-l-blue-600]="sim.specialiteL3 !== 'N/A'" [class.border-l-gray-400]="sim.specialiteL3 === 'N/A'">
           <mat-card-header>
             <mat-card-title class="text-xl mb-1 flex items-center">
@@ -29,7 +37,7 @@
             @if (sim.specialiteL3 !== 'N/A') {
                 <div class="text-2xl font-bold text-blue-800 mb-2">{{ sim.specialiteL3 }}</div>
             }
-            <p class="text-gray-600 italic">{{ sim.messageL3 }}</p>
+            <p class="text-gray-600 italic whitespace-pre-line">{{ sim.messageL3 }}</p>
           </mat-card-content>
         </mat-card>
 
@@ -44,38 +52,47 @@
 
             @if (sim.statsMaster.length > 0) {
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                @for (stat of sim.statsMaster; track stat.specialite + stat.type) {
-                  <div class="bg-gray-50 rounded-lg p-3 border border-gray-100 flex flex-col gap-2">
-                    <div class="flex justify-between items-center mb-1">
-                      <span class="font-bold text-gray-700">{{ stat.specialite }}</span>
-                      <span class="text-xs px-2 py-1 rounded bg-white border font-semibold" 
-                            [class.text-blue-600]="stat.type === 'PUBLIQUE'" 
-                            [class.text-purple-600]="stat.type === 'PRIVEE'">
-                        {{ stat.type }}
-                      </span>
+                @for (stat of sim.statsMaster; track stat.specialite) {
+                  <div class="bg-gray-50 rounded-lg p-3 border border-gray-100 flex flex-col gap-3 transition-colors hover:bg-white hover:shadow-sm">
+                    
+                    <div class="flex justify-between items-center pb-2 border-b border-gray-200">
+                      <span class="font-bold text-gray-800 text-lg">{{ stat.specialite }}</span>
                     </div>
 
                     <div class="space-y-1">
-                      <div class="flex justify-between text-xs text-gray-500">
-                        <span>Admission (Sélection)</span>
-                        <span class="font-bold">{{ stat.probabiliteAdmission }}%</span>
+                      <div class="flex justify-between text-xs text-gray-600">
+                        <span class="font-semibold text-blue-700">Admission PUBLIC</span>
+                        <span class="font-bold">{{ stat.probabiliteAdmissionPublic }}%</span>
                       </div>
-                      <mat-progress-bar mode="determinate" [value]="stat.probabiliteAdmission" 
-                        class="rounded h-1.5"
-                        [class.green-progress]="stat.probabiliteAdmission >= 70"></mat-progress-bar>
+                      <mat-progress-bar mode="determinate" [value]="stat.probabiliteAdmissionPublic" 
+                        class="rounded h-2" [class.green-progress]="stat.probabiliteAdmissionPublic >= 80">
+                      </mat-progress-bar>
                     </div>
 
                     <div class="space-y-1">
-                      <div class="flex justify-between text-xs text-gray-500">
-                        <span>Réussite Académique</span>
+                      <div class="flex justify-between text-xs text-gray-600">
+                        <span class="font-semibold text-purple-700">Admission PRIVÉ</span>
+                        <span class="font-bold">{{ stat.probabiliteAdmissionPrive }}%</span>
+                      </div>
+                      <mat-progress-bar mode="determinate" [value]="stat.probabiliteAdmissionPrive" 
+                        color="primary" class="rounded h-2 opacity-70">
+                      </mat-progress-bar>
+                    </div>
+
+                    <div class="space-y-1 pt-1 border-t border-dashed border-gray-200">
+                      <div class="flex justify-between text-xs text-gray-600">
+                        <span>Potentiel de Réussite (Si admis)</span>
                         <span class="font-bold">{{ stat.probabiliteReussite }}%</span>
                       </div>
                       <mat-progress-bar mode="determinate" [value]="stat.probabiliteReussite" 
-                        color="accent" class="rounded h-1.5"></mat-progress-bar>
+                        color="accent" class="rounded h-2"></mat-progress-bar>
                     </div>
+                    
                   </div>
                 }
               </div>
+            } @else {
+               <p class="text-sm text-gray-500 italic mt-2">Aucune projection disponible pour le moment (ou déjà inscrit en Master).</p>
             }
           </mat-card-content>
         </mat-card>
@@ -85,7 +102,7 @@
           <mat-icon class="text-6xl text-gray-300 mb-4">auto_awesome</mat-icon>
           <h3 class="text-xl font-semibold text-gray-600">Système Expert d'Orientation</h3>
           <p class="text-gray-500 max-w-md mx-auto mt-2">
-            Analysez votre parcours pour obtenir des conseils sur votre spécialisation et vos chances d'admission en Master.
+            Analysez votre parcours pour obtenir des conseils basés sur les profils similaires (Notes & Contexte).
           </p>
           <button mat-stroked-button color="primary" class="mt-6" (click)="lancerIA()">
             Lancer l'analyse
@@ -104,8 +121,8 @@
             <ng-container matColumnDef="matiere">
               <th mat-header-cell *matHeaderCellDef class="font-bold pl-4">Élément (EC)</th>
               <td mat-cell *matCellDef="let element" class="pl-4 text-sm"> 
-                <div class="font-medium">{{element.matiere}}</div>
-                <div class="text-xs text-gray-400">{{element.ue}}</div>
+                <div class="font-medium truncate max-w-[120px]" [matTooltip]="element.matiere">{{element.matiere}}</div>
+                <div class="text-xs text-gray-400 truncate max-w-[120px]">{{element.ue}}</div>
               </td>
             </ng-container>
             <ng-container matColumnDef="ue">

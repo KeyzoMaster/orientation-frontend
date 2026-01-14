@@ -1,7 +1,7 @@
 export interface PredictionMaster {
   specialite: string;
-  type: string;
-  probabiliteAdmission: number;
+  probabiliteAdmissionPublic: number;
+  probabiliteAdmissionPrive: number;
   probabiliteReussite: number;
 }
 
