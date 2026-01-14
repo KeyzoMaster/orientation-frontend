@@ -1,7 +1,16 @@
+export interface PredictionMaster {
+  specialite: string;
+  type: string;
+  probabilite: number;
+}
+
 export interface Recommandation {
   specialiteL3: string;
-  probabiliteMasterPublic: number;
-  probabiliteMasterPrive: number;
+  messageL3: string;
+  
+  statsMaster: PredictionMaster[];
+  messageMaster: string;
+  
   conseilTrajectoire: string;
   matieresACorriger: string[];
 }

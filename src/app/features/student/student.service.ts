@@ -17,7 +17,7 @@ export class StudentService {
   readonly isLoading = signal(false);
 
   // --- COMPUTED ---
-  // Aplatit les notes pour l'affichage "Dernières notes" du dashboard
+  // Adaptation pour la nouvelle structure hiérarchique
   readonly dernieresNotes = computed(() => {
     const p = this.parcours();
     if (!p || !p.annees.length) return [];
@@ -25,19 +25,27 @@ export class StudentService {
     // On prend l'année la plus récente
     const lastYear = p.annees[p.annees.length - 1];
     
-    // On extrait toutes les notes d'EC de cette année
+    // Extraction à plat des notes en parcourant Semestres -> UEs -> Notes
     const notes: any[] = [];
-    lastYear.ues.forEach(ue => {
-      ue.notes.forEach(note => {
-        notes.push({
-          matiere: note.nomEC, // Ou ue.libelle si on veut l'UE
-          note: note.valeur,
-          ue: ue.codeUE,
-          annee: lastYear.niveau
+    
+    if (lastYear.semestres) {
+      lastYear.semestres.forEach(sem => {
+        sem.ues.forEach(ue => {
+          ue.notes.forEach(note => {
+            notes.push({
+              matiere: note.nomEC,
+              note: note.valeur,
+              ue: ue.codeUE,
+              annee: sem.codeSemestre // Ex: L_S1
+            });
+          });
         });
       });
-    });
-    return notes.slice(0, 5); // Top 5
+    }
+    
+    // On retourne les 5 dernières notes ajoutées (souvent les dernières du tableau)
+    // Note: Idéalement, le backend devrait renvoyer une date de saisie pour trier
+    return notes.slice(-5).reverse(); 
   });
 
   // --- ACTIONS ---

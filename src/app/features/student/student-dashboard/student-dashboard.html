@@ -18,43 +18,67 @@
     <div class="lg:col-span-2 space-y-6">
       
       @if (simulation(); as sim) {
-        <mat-card class="border-l-8 border-l-blue-600 shadow-md">
+        
+        <mat-card class="shadow-md border-l-4" [class.border-l-blue-600]="sim.specialiteL3 !== 'N/A'" [class.border-l-gray-400]="sim.specialiteL3 === 'N/A'">
           <mat-card-header>
-            <mat-card-title class="text-2xl text-blue-800 mb-2">
-              Recommandation : <span class="font-bold">{{ sim.specialiteL3 }}</span>
+            <mat-card-title class="text-xl mb-1 flex items-center">
+              <mat-icon class="mr-2 text-gray-600">school</mat-icon> Orientation Licence 3
             </mat-card-title>
           </mat-card-header>
-          <mat-card-content class="pt-4">
-            <p class="text-lg text-gray-700 italic mb-6">
-              "{{ sim.conseilTrajectoire }}"
-            </p>
+          <mat-card-content class="pt-2">
+            @if (sim.specialiteL3 !== 'N/A') {
+                <div class="text-2xl font-bold text-blue-800 mb-2">{{ sim.specialiteL3 }}</div>
+            }
+            <p class="text-gray-600 italic">{{ sim.messageL3 }}</p>
+          </mat-card-content>
+        </mat-card>
 
-            <div class="space-y-6">
-              <div>
-                <div class="flex justify-between mb-1">
-                  <span class="text-sm font-medium text-gray-700">Chance Master Public</span>
-                  <span class="text-sm font-bold text-blue-600">{{ sim.probabiliteMasterPublic }}%</span>
-                </div>
-                <mat-progress-bar mode="determinate" [value]="sim.probabiliteMasterPublic" class="rounded h-4"></mat-progress-bar>
-              </div>
-            </div>
+        <mat-card class="shadow-md border-l-4" [class.border-l-purple-600]="sim.statsMaster.length > 0" [class.border-l-gray-400]="sim.statsMaster.length === 0">
+          <mat-card-header>
+            <mat-card-title class="text-xl mb-1 flex items-center">
+              <mat-icon class="mr-2 text-gray-600">trending_up</mat-icon> Projection Master
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content class="pt-2">
+            <p class="text-gray-600 mb-4">{{ sim.messageMaster }}</p>
 
-            @if (sim.matieresACorriger.length > 0) {
-              <div class="mt-6 bg-red-50 p-4 rounded-lg border border-red-100">
-                <h4 class="flex items-center text-red-700 font-bold mb-2">
-                  <mat-icon class="mr-2 text-sm">warning</mat-icon> Dettes à valider
-                </h4>
-                <div class="flex flex-wrap gap-2">
-                  @for (matiere of sim.matieresACorriger; track matiere) {
-                    <mat-chip class="bg-white text-red-600 border border-red-200">
-                      {{ matiere }}
-                    </mat-chip>
-                  }
-                </div>
+            @if (sim.statsMaster.length > 0) {
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                @for (stat of sim.statsMaster; track stat.specialite + stat.type) {
+                  <div class="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                    <div class="flex justify-between items-center mb-2">
+                      <span class="font-bold text-gray-700">{{ stat.specialite }}</span>
+                      <span class="text-xs px-2 py-1 rounded bg-white border" [class.text-blue-600]="stat.type === 'Public'" [class.text-purple-600]="stat.type === 'Prive'">
+                        {{ stat.type }}
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <mat-progress-bar mode="determinate" [value]="stat.probabilite" 
+                        [class.green-progress]="stat.probabilite >= 70"
+                        class="rounded h-2 flex-1"></mat-progress-bar>
+                      <span class="text-sm font-bold w-10 text-right">{{ stat.probabilite }}%</span>
+                    </div>
+                  </div>
+                }
               </div>
             }
           </mat-card-content>
         </mat-card>
+
+        @if (sim.matieresACorriger.length > 0) {
+          <div class="bg-red-50 p-4 rounded-lg border border-red-100">
+            <h4 class="flex items-center text-red-700 font-bold mb-2">
+              <mat-icon class="mr-2 text-sm">warning</mat-icon> Dettes (Année en cours)
+            </h4>
+            <div class="flex flex-wrap gap-2">
+              @for (matiere of sim.matieresACorriger; track matiere) {
+                <mat-chip class="bg-white text-red-600 border border-red-200">
+                  {{ matiere }}
+                </mat-chip>
+              }
+            </div>
+          </div>
+        }
 
       } @else {
         <div class="bg-white p-10 rounded-xl shadow-sm text-center border-2 border-dashed border-gray-300">
@@ -76,7 +100,6 @@
           <mat-card-title class="text-lg">Dernières Notes</mat-card-title>
         </mat-card-header>
         <mat-card-content class="p-0">
-          
           <table mat-table [dataSource]="notes()" class="w-full">
             <ng-container matColumnDef="matiere">
               <th mat-header-cell *matHeaderCellDef class="font-bold pl-4">Élément (EC)</th>
@@ -85,27 +108,21 @@
                 <div class="text-xs text-gray-400">{{element.ue}}</div>
               </td>
             </ng-container>
-            
             <ng-container matColumnDef="ue">
                <th mat-header-cell *matHeaderCellDef class="hidden"></th>
                <td mat-cell *matCellDef="let element" class="hidden"></td>
             </ng-container>
-          
             <ng-container matColumnDef="note">
               <th mat-header-cell *matHeaderCellDef class="text-right pr-4">Note</th>
               <td mat-cell *matCellDef="let element" class="text-right pr-4 font-bold" [class]="getNoteColor(element.note)"> 
                 {{element.note}}/20 
               </td>
             </ng-container>
-
             <tr mat-header-row *matHeaderRowDef="['matiere', 'note']"></tr>
             <tr mat-row *matRowDef="let row; columns: ['matiere', 'note'];"></tr>
           </table>
-
           @if (notes().length === 0) {
-            <div class="p-6 text-center text-sm text-gray-500">
-              Aucune note récente.
-            </div>
+            <div class="p-6 text-center text-sm text-gray-500">Aucune note récente.</div>
           }
         </mat-card-content>
         <mat-card-actions align="end" class="p-2 border-t">

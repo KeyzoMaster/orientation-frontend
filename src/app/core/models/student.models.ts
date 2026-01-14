@@ -5,15 +5,6 @@ export enum TypeSession {
   UNIQUE = 'UNIQUE'
 }
 
-// DTO pour la saisie de note
-export interface SaisieNoteRequest {
-  inscriptionId: number;
-  codeUE: string;
-  nomEC: string;
-  note: number;
-  session: TypeSession;
-}
-
 export interface NoteDto {
   nomEC: string;
   valeur: number;
@@ -30,13 +21,24 @@ export interface ResultatUEDto {
   notes: NoteDto[];
 }
 
+// NOUVEAU : DTO Semestre
+export interface SemestreDto {
+  id: number;
+  codeSemestre: string; // L_S1
+  moyenne: number;
+  credits: number;
+  valide: boolean;
+  ues: ResultatUEDto[];
+}
+
+// MISE A JOUR : L'année contient une liste de semestres
 export interface AnneeAcademiqueDto {
   inscriptionId: number;
   annee: number;
-  niveau: string;   // L_S1
-  decision: string; // ADMIS, REDOUBLANT
+  cycle: string;      // LICENCE, MASTER
+  decision: string;   // ADMIS, REDOUBLANT
   moyenneAnnuelle: number;
-  ues: ResultatUEDto[];
+  semestres: SemestreDto[]; // Remplacement de ues[] par semestres[]
 }
 
 export interface ParcoursDto {

@@ -6,7 +6,7 @@
     </button>
     <div>
       <h1 class="text-3xl font-bold text-gray-800 m-0">Mon Parcours Académique</h1>
-      <p class="text-gray-500 text-sm">Historique des résultats par année</p>
+      <p class="text-gray-500 text-sm">Historique des résultats par année et semestre</p>
     </div>
   </div>
 
@@ -24,14 +24,15 @@
   <mat-accordion multi>
     @for (annee of parcours()?.annees; track annee.annee) {
       <mat-expansion-panel expanded="true" class="mb-4 shadow-sm border border-gray-200 overflow-hidden">
+        
         <mat-expansion-panel-header class="bg-gray-50 h-16 border-b border-gray-100">
           <div class="flex items-center justify-between w-full mr-4">
             <div class="flex flex-col">
               <span class="text-lg font-bold text-blue-900">
-                {{ annee.niveau }} <span class="text-gray-500 font-normal text-sm">({{ annee.annee }})</span>
+                {{ annee.cycle }} <span class="text-gray-500 font-normal text-sm">({{ annee.annee }})</span>
               </span>
               <span class="text-xs text-gray-500 uppercase tracking-wide">
-                Moyenne : <span class="font-bold text-gray-800">{{ annee.moyenneAnnuelle.toFixed(2) }}/20</span>
+                Moyenne Annuelle : <span class="font-bold text-gray-800">{{ annee.moyenneAnnuelle!.toFixed(2) }}/20</span>
               </span>
             </div>
             
@@ -42,43 +43,57 @@
           </div>
         </mat-expansion-panel-header>
 
-        <div class="p-4 grid grid-cols-1 gap-4">
-          @for (ue of annee.ues; track ue.codeUE) {
-            <div class="border rounded-lg p-4 hover:shadow-md transition-shadow bg-white">
-              
-              <div class="flex justify-between items-start mb-3">
-                <div>
-                  <h3 class="font-bold text-gray-800 text-base">{{ ue.libelle }}</h3>
-                  <div class="text-xs text-gray-500 flex gap-2 mt-1">
-                    <span class="bg-gray-100 px-2 rounded">{{ ue.codeUE }}</span>
-                    <span>Crédits: {{ ue.credits }}</span>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <div class="text-lg font-bold" [class.text-red-600]="ue.moyenne < 10" [class.text-green-700]="ue.moyenne >= 10">
-                    {{ ue.moyenne.toFixed(2) }}
-                  </div>
-                  <span class="text-[10px] px-2 py-0.5 rounded border uppercase" [class]="getUEStatusColor(ue.statut)">
-                    {{ ue.statut }}
-                  </span>
+        <div class="p-4 space-y-6">
+          
+          @for (sem of annee.semestres; track sem.id) {
+            <div class="border-l-4 pl-4" [class]="sem.valide ? 'border-green-400' : 'border-red-400'">
+              <div class="flex justify-between items-center mb-3">
+                <h3 class="font-bold text-gray-700 text-lg">{{ sem.codeSemestre }}</h3>
+                <div class="text-sm">
+                  <span class="mr-3 text-gray-600">Moy: <strong>{{ sem.moyenne!.toFixed(2) }}</strong></span>
+                  <span class="text-gray-600">Crédits: <strong>{{ sem.credits }}/30</strong></span>
                 </div>
               </div>
 
-              @if (ue.notes.length > 0) {
-                <div class="bg-gray-50 rounded p-3 text-sm space-y-2">
-                  @for (note of ue.notes; track note.nomEC) {
-                    <div class="flex justify-between items-center border-b border-gray-200 last:border-0 pb-1 last:pb-0">
-                      <span class="text-gray-700 truncate pr-2">{{ note.nomEC }}</span>
-                      <div class="flex items-center gap-2 shrink-0">
-                        <span class="text-xs text-gray-400 lowercase">({{ note.session }})</span>
-                        <span class="font-medium w-10 text-right">{{ note.valeur }}/20</span>
+              <div class="grid grid-cols-1 gap-4">
+                @for (ue of sem.ues; track ue.codeUE) {
+                  <div class="border rounded-lg p-3 hover:shadow-md transition-shadow bg-white flex flex-col gap-2">
+                    
+                    <div class="flex justify-between items-start">
+                      <div>
+                        <div class="font-bold text-gray-800 text-sm">{{ ue.libelle }}</div>
+                        <div class="text-[10px] text-gray-400 flex gap-2">
+                          <span class="bg-gray-100 px-1 rounded">{{ ue.codeUE }}</span>
+                          @if (ue.isDette) { <span class="text-red-500 font-bold">DETTE</span> }
+                        </div>
+                      </div>
+                      
+                      <div class="text-right">
+                        <div class="text-base font-bold" [class.text-red-600]="ue.moyenne < 10" [class.text-green-700]="ue.moyenne >= 10">
+                          {{ ue.moyenne!.toFixed(2) }}
+                        </div>
+                        <span class="text-[9px] px-1.5 py-0.5 rounded border uppercase" [class]="getUEStatusColor(ue.statut)">
+                          {{ ue.statut }}
+                        </span>
                       </div>
                     </div>
-                  }
-                </div>
-              } @else {
-                <p class="text-xs text-gray-400 italic mt-2">Aucune note saisie pour cette UE.</p>
-              }
+
+                    @if (ue.notes.length > 0) {
+                      <div class="bg-gray-50 rounded p-2 text-xs space-y-1 mt-1">
+                        @for (note of ue.notes; track note.nomEC) {
+                          <div class="flex justify-between items-center border-b border-gray-200 last:border-0 pb-1 last:pb-0">
+                            <span class="text-gray-600 truncate pr-2">{{ note.nomEC }}</span>
+                            <div class="flex items-center gap-1 shrink-0">
+                              <span class="text-[10px] text-gray-400 lowercase">{{ note.session.substring(0,3) }}.</span>
+                              <span class="font-medium w-8 text-right">{{ note.valeur }}/20</span>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
             </div>
           }
         </div>
